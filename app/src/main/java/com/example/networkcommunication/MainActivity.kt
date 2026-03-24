@@ -61,31 +61,33 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+data class Product (val id: Int, val title: String, val artist: String, val downloads: Int, val price: Double, val Quantity: Int)
+
 @Composable
 fun NetworkComm(artist: String) {
     var responseText by remember { mutableStateOf("") }
+    var products by remember { mutableStateOf(listOf<Product>()) }
     Column {
         Button( onClick = {
             // URL which returns JSON describing points of interest
             var url = "http://10.0.2.2:3000/artist/" + artist
-            url.httpGet().response { request, response, result ->
-
+            url.httpGet().responseObject<List<Product>> { request, response, result ->
                 when(result) {
                     is Result.Success -> {
-                        // result.get() gives ByteArray, decode to string
-                        responseText = result.get().decodeToString()
+                        products = result.get()
                     }
 
                     is Result.Failure -> {
-                        // is failure if HTTP error
                         responseText = "ERROR ${result.error.message}"
                     }
                 }
             }
         }) {
-            Text("Get data from Web!")
+            Text("Get data from Web (Fuel/GSON)!")
         }
-        Text(responseText)
+        products.forEach {
+            Text("${it.title} ${it.price}")
+        }
     }
 }
 
